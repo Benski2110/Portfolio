@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Reel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#141217;
+    --ink-soft:#1d1a20;
+    --paper:#EDE7D9;
+    --paper-dim:#d9d2bf;
+    --safelight:#C22D2D;
+    --brass:#B8935A;
+    --slate:#6E6A63;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Courier Prime', monospace;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* film grain */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index:9999;
+    opacity:0.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;
+  }
+
+  h1,h2,h3{
+    font-family:'Bebas Neue', sans-serif;
+    letter-spacing:0.04em;
+    margin:0;
+    font-weight:400;
+  }
+
+  [contenteditable="true"]{
+    outline:none;
+    border-bottom:1px dashed transparent;
+    transition:border-color .2s;
+    cursor:text;
+  }
+  [contenteditable="true"]:hover{border-bottom-color:var(--brass);}
+  [contenteditable="true"]:focus{border-bottom-color:var(--safelight);}
+  [contenteditable="true"]:empty::before{
+    content:attr(data-placeholder);
+    color:var(--slate);
+  }
+
+  /* sprocket strip divider */
+  .sprockets{
+    height:22px;
+    background:
+      repeating-linear-gradient(90deg,
+        var(--ink) 0 10px,
+        var(--ink-soft) 10px 32px);
+    position:relative;
+    border-top:1px solid #000;
+    border-bottom:1px solid #000;
+  }
+  .sprockets::before,.sprockets::after{
+    content:"";
+    position:absolute; top:50%; left:0; right:0;
+    height:10px; transform:translateY(-50%);
+    background-image:radial-gradient(circle, var(--ink) 3.5px, transparent 3.6px);
+    background-size:26px 10px;
+    background-position:13px center;
+  }
+  .sprockets::before{ top:5px; }
+  .sprockets::after{ top:17px; }
+
+  /* ---------- HERO / CLAPPERBOARD ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    background:var(--ink);
+  }
+  .hero-bg{
+    position:absolute; inset:0;
+    background:var(--ink);
+    cursor:pointer;
+    overflow:hidden;
+  }
+  .hero-bg-photo{
+    position:absolute; inset:0;
+    background-image:radial-gradient(ellipse at 50% 30%, #2a2630, #141217);
+    background-size:cover;
+    background-position:center 50%;
+    background-repeat:no-repeat;
+  }
+  .hero-bg-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(20,18,23,0.35), rgba(20,18,23,0.92));
+    pointer-events:none;
+  }
+  .hero-bg-hint{
+    position:absolute; top:20px; right:20px;
+    z-index:2;
+    background:rgba(20,18,23,0.7);
+    border:1px solid var(--brass);
+    color:var(--paper);
+    font-family:'Courier Prime', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    padding:8px 12px;
+    border-radius:2px;
+    display:flex; align-items:center; gap:6px;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .hero-bg-hint:hover{border-color:var(--safelight);}
+
+  .clap-top{
+    background:repeating-linear-gradient(135deg,
+      var(--paper) 0 28px, var(--ink) 28px 56px);
+    height:44px;
+    position:relative; z-index:2;
+    border-top:2px solid #000; border-bottom:2px solid #000;
+  }
+
+  .slate{
+    position:relative; z-index:2;
+    background:var(--ink-soft);
+    border-bottom:2px solid #000;
+    padding:28px 6vw 40px;
+  }
+
+  .slate-title{
+    font-size:clamp(3rem, 11vw, 8rem);
+    line-height:0.92;
+    color:var(--paper);
+  }
+  .slate-sub{
+    margin-top:10px;
+    color:var(--brass);
+    font-family:'Courier Prime', monospace;
+    font-size:clamp(0.9rem, 2vw, 1.05rem);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+
+  .slate-fields{
+    margin-top:26px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    gap:14px 28px;
+    max-width:760px;
+    border-top:1px solid var(--slate);
+    padding-top:18px;
+  }
+  .field label{
+    display:block;
+    font-size:10px;
+    letter-spacing:0.15em;
+    color:var(--slate);
+    text-transform:uppercase;
+    margin-bottom:3px;
+  }
+  .field .val{
+    font-size:14px;
+    color:var(--paper);
+  }
+
+  /* profile lens, floats over hero */
+  .lens-wrap{
+    position:absolute;
+    right:6vw; bottom:190px;
+    z-index:3;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .lens{
+    width:150px; height:150px;
+    border-radius:50%;
+    border:5px solid var(--brass);
+    box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--paper-dim), 0 12px 30px rgba(0,0,0,.6);
+    background:var(--ink-soft) center/cover no-repeat;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+  }
+  .lens .icon{opacity:.6;}
+  .lens:hover{border-color:var(--safelight);}
+  .lens-label{
+    font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--slate);
+  }
+
+  @media (max-width:720px){
+    .lens-wrap{ position:relative; right:auto; bottom:auto; margin:24px 6vw 0; flex-direction:row; }
+  }
+
+  input[type=file]{display:none;}
+
+  /* ---------- SECTIONS ---------- */
+  section{
+    padding:70px 6vw;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--safelight);
+    margin-bottom:10px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::after{
+    content:"";
+    flex:1; height:1px; background:var(--slate); opacity:.4;
+  }
+  .section-title{
+    font-size:clamp(2rem,5vw,3.4rem);
+    margin-bottom:24px;
+  }
+
+  .statement{
+    font-size:16px;
+    line-height:1.85;
+    max-width:760px;
+    color:var(--paper-dim);
+    white-space:pre-wrap;
+  }
+
+  /* ---------- CONTACT SHEET / PROJECTS ---------- */
+  .sheet{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:26px;
+    margin-top:30px;
+  }
+  .frame{
+    background:var(--ink-soft);
+    border:1px solid #000;
+    position:relative;
+    padding-bottom:4px;
+  }
+  .frame-sprockets-top, .frame-sprockets-bottom{
+    height:14px;
+    background-image:radial-gradient(circle, var(--ink) 2.6px, transparent 2.7px);
+    background-size:18px 14px;
+    background-position:9px center;
+    background-color:var(--ink-soft);
+  }
+  .frame-img{
+    aspect-ratio:4/3;
+    background:#0f0d11 center/cover no-repeat;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    color:var(--slate);
+    text-align:center;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    padding:16px;
+    border-top:1px solid #000; border-bottom:1px solid #000;
+  }
+  .frame-img:hover{ color:var(--brass); }
+  .frame-body{ padding:16px 16px 6px; }
+  .frame-num{
+    font-family:'Bebas Neue', sans-serif;
+    color:var(--brass);
+    font-size:13px;
+    letter-spacing:.1em;
+  }
+  .frame-title{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:1.5rem;
+    margin-top:2px;
+    color:var(--paper);
+  }
+  .frame-role{
+    font-size:11px;
+    color:var(--safelight);
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    margin-top:4px;
+  }
+  .frame-desc{
+    font-size:12.5px;
+    color:var(--paper-dim);
+    line-height:1.6;
+    margin-top:10px;
+  }
+  .frame-remove{
+    position:absolute; top:8px; right:8px;
+    width:22px; height:22px;
+    background:rgba(20,18,23,0.8);
+    border:1px solid var(--slate);
+    color:var(--paper-dim);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    font-size:12px;
+    z-index:4;
+    opacity:0;
+    transition:opacity .15s;
+  }
+  .frame:hover .frame-remove{opacity:1;}
+  .frame-remove:hover{border-color:var(--safelight); color:var(--safelight);}
+
+  .add-frame{
+    border:1px dashed var(--slate);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px;
+    min-height:260px;
+    cursor:pointer;
+    color:var(--slate);
+    font-size:11px;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+    background:transparent;
+  }
+  .add-frame:hover{ color:var(--brass); border-color:var(--brass); }
+  .add-frame .plus{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:2.4rem;
+    line-height:1;
+  }
+
+  /* ---------- GEAR / SKILLS ---------- */
+  .gear-list{
+    margin-top:26px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:0;
+    border-top:1px solid var(--slate);
+  }
+  .gear-item{
+    padding:16px 4px;
+    border-bottom:1px solid var(--slate);
+    display:flex; justify-content:space-between; align-items:baseline;
+    gap:12px;
+  }
+  .gear-item .g-name{ font-size:14px; color:var(--paper); }
+  .gear-item .g-tag{
+    font-size:10px; color:var(--brass); letter-spacing:.1em; text-transform:uppercase; white-space:nowrap;
+  }
+
+  /* ---------- CONTACT / END SLATE ---------- */
+  .end-slate{
+    background:var(--ink-soft);
+    border-top:2px solid #000;
+    padding:90px 6vw 60px;
+    text-align:center;
+  }
+  .end-slate h2{
+    font-size:clamp(2.4rem,8vw,5rem);
+    color:var(--paper);
+  }
+  .end-slate .sub{
+    color:var(--slate);
+    font-size:12px;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+    margin-top:10px;
+  }
+  .contact-row{
+    margin-top:34px;
+    display:flex; flex-wrap:wrap; gap:28px; justify-content:center;
+  }
+  .contact-row .c-item{ text-align:left; }
+  .contact-row label{
+    display:block; font-size:10px; color:var(--slate); letter-spacing:.15em; text-transform:uppercase; margin-bottom:3px;
+  }
+  .contact-row .val{ font-size:14px; color:var(--paper); }
+
+  footer{
+    text-align:center;
+    padding:26px;
+    font-size:10px;
+    letter-spacing:.15em;
+    color:var(--slate);
+    text-transform:uppercase;
+  }
+
+  svg{display:block;}
+</style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-bg" id="heroBg" title="Click to add a background photo">
+      <div class="hero-bg-photo" id="heroBgPhoto"></div>
+      <div class="hero-bg-overlay"></div>
+      <div class="hero-bg-hint" id="heroBgHint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg>
+        Add background photo
+      </div>
+    </div>
+    <input type="file" id="heroBgInput" accept="image/*">
+
+    <div class="lens-wrap">
+      <div class="lens" id="lensImg">
+        <svg class="icon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><circle cx="12" cy="12" r="0.8" fill="currentColor"/></svg>
+      </div>
+      <div class="lens-label">Click for your photo</div>
+      <input type="file" id="lensInput" accept="image/*">
+    </div>
+
+    <div class="clap-top"></div>
+
+    <div class="slate">
+      <h1 class="slate-title" contenteditable="true" data-placeholder="Your Name">Your Name</h1>
+      <div class="slate-sub" contenteditable="true" data-placeholder="Filmmaker · Cinematographer · Editor">Filmmaker · Cinematographer · Editor</div>
+
+      <div class="slate-fields">
+        <div class="field">
+          <label>Production</label>
+          <div class="val" contenteditable="true" data-placeholder="Intro to Film — Student Reel">Intro to Film — Student Reel</div>
+        </div>
+        <div class="field">
+          <label>Director</label>
+          <div class="val" contenteditable="true" data-placeholder="Your Name">Your Name</div>
+        </div>
+        <div class="field">
+          <label>Scene / Take</label>
+          <div class="val" contenteditable="true" data-placeholder="Reel 01 / Take 01">Reel 01 / Take 01</div>
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <div class="val" contenteditable="true" data-placeholder="Fall 2026">Fall 2026</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sprockets"></div>
+
+  <!-- BIO -->
+  <section>
+    <div class="eyebrow">About the Filmmaker</div>
+    <h2 class="section-title">Bio</h2>
+    <p class="statement" contenteditable="true" data-placeholder="A couple sentences about who you are — where you're from, what got you into film, what you're studying, or anything else worth knowing. Click here to start typing.">A couple sentences about who you are — where you're from, what got you into film, what you're studying, or anything else worth knowing. Click here to start typing.</p>
+
+    <div class="slate-fields" style="border-top:1px solid var(--slate); margin-top:22px; padding-top:18px; max-width:760px;">
+      <div class="field">
+        <label>Hometown</label>
+        <div class="val" contenteditable="true" data-placeholder="City, State">City, State</div>
+      </div>
+      <div class="field">
+        <label>Year</label>
+        <div class="val" contenteditable="true" data-placeholder="Freshman">Freshman</div>
+      </div>
+      <div class="field">
+        <label>Favorite Film</label>
+        <div class="val" contenteditable="true" data-placeholder="Title, Year">Title, Year</div>
+      </div>
+      <div class="field">
+        <label>Inspired By</label>
+        <div class="val" contenteditable="true" data-placeholder="A director, film, or filmmaker">A director, film, or filmmaker</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sprockets"></div>
+
+  <!-- STATEMENT -->
+  <section>
+    <div class="eyebrow">Director's Statement</div>
+    <h2 class="section-title">Why I Make Films</h2>
+    <p class="statement" contenteditable="true" data-placeholder="Write a short statement about what drew you to film, what you're exploring this semester, and the kind of stories you want to tell. Click here to start typing.">Write a short statement about what drew you to film, what you're exploring this semester, and the kind of stories you want to tell. Click here to start typing.</p>
+  </section>
+
+  <div class="sprockets"></div>
+
+  <!-- CONTACT SHEET / PROJECTS -->
+  <section>
+    <div class="eyebrow">Contact Sheet</div>
+    <h2 class="section-title">Projects &amp; Assignments</h2>
+    <div class="sheet" id="sheet">
+      <!-- frames injected here -->
+    </div>
+  </section>
+
+  <div class="sprockets"></div>
+
+  <!-- GEAR / SKILLS -->
+  <section>
+    <div class="eyebrow">Kit &amp; Craft</div>
+    <h2 class="section-title">Tools I'm Learning</h2>
+    <div class="gear-list" id="gearList">
+      <div class="gear-item"><span class="g-name" contenteditable="true">Shot composition &amp; framing</span><span class="g-tag">Cinematography</span></div>
+      <div class="gear-item"><span class="g-name" contenteditable="true">DSLR / camcorder handling</span><span class="g-tag">Camera</span></div>
+      <div class="gear-item"><span class="g-name" contenteditable="true">Premiere Pro editing</span><span class="g-tag">Post</span></div>
+      <div class="gear-item"><span class="g-name" contenteditable="true">Three-point lighting</span><span class="g-tag">Lighting</span></div>
+      <div class="gear-item"><span class="g-name" contenteditable="true">Storyboarding</span><span class="g-tag">Pre-production</span></div>
+      <div class="gear-item"><span class="g-name" contenteditable="true">Sound recording basics</span><span class="g-tag">Audio</span></div>
+    </div>
+  </section>
+
+  <!-- END SLATE -->
+  <div class="end-slate">
+    <h2>That's a Wrap.</h2>
+    <div class="sub">Thank you for watching</div>
+    <div class="contact-row">
+      <div class="c-item">
+        <label>Email</label>
+        <div class="val" contenteditable="true" data-placeholder="you@school.edu">you@school.edu</div>
+      </div>
+      <div class="c-item">
+        <label>Instagram / Vimeo</label>
+        <div class="val" contenteditable="true" data-placeholder="@yourhandle">@yourhandle</div>
+      </div>
+      <div class="c-item">
+        <label>Class</label>
+        <div class="val" contenteditable="true" data-placeholder="Intro to Film, Section 01">Intro to Film, Section 01</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Portfolio · Click any text to edit · Click any frame to add a photo</footer>
+
+<script>
+(function(){
+  // ---- hero background upload ----
+  const heroBg = document.getElementById('heroBg');
+  const heroBgPhoto = document.getElementById('heroBgPhoto');
+  const heroBgInput = document.getElementById('heroBgInput');
+
+  heroBg.addEventListener('click', () => heroBgInput.click());
+  heroBgInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      heroBgPhoto.style.backgroundImage = `url(${ev.target.result})`;
+      heroBgPhoto.style.backgroundPosition = 'center 50%';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ---- profile lens upload ----
+  const lensImg = document.getElementById('lensImg');
+  const lensInput = document.getElementById('lensInput');
+  lensImg.addEventListener('click', () => lensInput.click());
+  lensInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      lensImg.style.backgroundImage = `url(${ev.target.result})`;
+      lensImg.innerHTML = '';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ---- project frames (contact sheet) ----
+  const sheet = document.getElementById('sheet');
+  let frameCount = 0;
+
+  function cameraIcon(){
+    return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg>`;
+  }
+
+  function buildFrame(data){
+    frameCount++;
+    const num = String(frameCount).padStart(2,'0');
+    const frame = document.createElement('div');
+    frame.className = 'frame';
+    frame.innerHTML = `
+      <div class="frame-remove" title="Remove">✕</div>
+      <div class="frame-sprockets-top"></div>
+      <div class="frame-img">
+        ${cameraIcon()}
+        <span style="margin-top:8px;">Add a still</span>
+      </div>
+      <div class="frame-sprockets-bottom"></div>
+      <div class="frame-body">
+        <div class="frame-num">FRAME ${num}</div>
+        <div class="frame-title" contenteditable="true" data-placeholder="Project Title">${data.title||''}</div>
+        <div class="frame-role" contenteditable="true" data-placeholder="Your Role (Director / Editor...)">${data.role||''}</div>
+        <div class="frame-desc" contenteditable="true" data-placeholder="Short synopsis or assignment notes...">${data.desc||''}</div>
+      </div>
+    `;
+
+    // image upload for this frame
+    const imgSlot = frame.querySelector('.frame-img');
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    frame.appendChild(fileInput);
+
+    imgSlot.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        imgSlot.style.backgroundImage = `url(${ev.target.result})`;
+        imgSlot.innerHTML = '';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // remove button
+    frame.querySelector('.frame-remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      frame.remove();
+      renumberFrames();
+    });
+
+    return frame;
+  }
+
+  function renumberFrames(){
+    const frames = sheet.querySelectorAll('.frame .frame-num');
+    frames.forEach((el,i)=> el.textContent = 'FRAME ' + String(i+1).padStart(2,'0'));
+  }
+
+  const addBtn = document.createElement('div');
+  addBtn.className = 'add-frame';
+  addBtn.innerHTML = `<span class="plus">+</span><span>Add project</span>`;
+  addBtn.addEventListener('click', () => {
+    const f = buildFrame({});
+    sheet.insertBefore(f, addBtn);
+  });
+
+  // seed with three starter projects
+  const seeds = [
+    {title:'Project Title', role:'Your Role', desc:'Short synopsis or assignment notes...'},
+    {title:'Project Title', role:'Your Role', desc:'Short synopsis or assignment notes...'},
+    {title:'Project Title', role:'Your Role', desc:'Short synopsis or assignment notes...'}
+  ];
+  seeds.forEach(s => sheet.appendChild(buildFrame(s)));
+  sheet.appendChild(addBtn);
+
+  // ---- gear list: allow adding rows on click of last row's tag? Keep simple: double-click empty area not needed ----
+})();
+</script>
+</body>
+</html>
